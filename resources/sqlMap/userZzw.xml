@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- sqlMapper.xml文件的名称自定义，只要和全局配置文件的配置的mapper文件名一致即可 -->
+<mapper namespace="testZzw">
+	<select id="selectById" parameterType="int" resultType="com.asiainfo.entity.User">  <!-- 当输入参数类型为简单类型时，占位符名称可以自定义；resultType指定的是单条数据映射的pojo，这里强调的是“单条” -->
+	<!-- 当字段名称和pojo的属性名称一致时，mybatis可以实现自动映射，不区分大小写，比如字段名为username而pojo的属性名为userName，同样可以实现自动映射 -->
+		select * from user where id = #{abc}    <!-- #{}表示占位符 -->
+	</select>  
+	
+	<select id="selectByName" parameterType="java.lang.String" resultType="com.asiainfo.entity.User">
+		select * from user where username like '%${value}%'     <!-- ${}表示拼接符，当参数为基本类型的时候，拼接符的名称必须为value。不建议使用，会引起sql注入 -->
+	</select>
+	
+	<insert id="insertAutoIncr" parameterType="com.asiainfo.entity.User">
+		<selectKey keyProperty="id" resultType="int" order="AFTER">  <!-- 适用于自增主键 -->
+			select LAST_INSERT_ID();
+		</selectKey>
+		insert into user (username,birthday,sex,address) values (#{userName},#{birthday},#{sex},#{address});  <!-- #{}中的变量名要与pojo的属性名一致 -->
+	</insert>
+	
+	<insert id="insertNotAutoIncr" parameterType="com.asiainfo.entity.UserNotAutoIncr">
+		<selectKey keyProperty="id" resultType="java.lang.String" order="BEFORE">
+			select uuid();
+		</selectKey>
+		insert into user_not_auto_incr (id,username) values (#{id},#{userName});
+	</insert>
+	
+	<delete id="deleteById" parameterType="int">
+		delete from user where id=#{aaa}
+	</delete>
+	
+	<update id="updateById" parameterType="com.asiainfo.entity.User">  <!-- parameterType属性只能有一个，如果sql需要传入两个以上的参数可以用pojo或者Map -->
+		update user set username = #{userName} where id=#{id}
+	</update>
+</mapper>

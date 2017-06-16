@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.asiainfo.mapper.UserMapper">
+	<!-- 开启本mapper的二级缓存 -->
+	<cache type="org.mybatis.caches.ehcache.EhcacheCache"/>  <!-- 将mybatis和第三方的缓存整合，type指定的是实现org.apache.ibatis.cache.Cache接口的类，再累一般在第三方整合的jar包中 -->
+
+	<resultMap id="baseResultMap" type="user">
+		<id column="id" property="id"></id>
+		<result column="username" property="userName"></result>
+		<result column="birthday" property="birthday"></result>
+		<result column="sex" property="sex"></result>
+		<result column="address" property="address"></result>
+	</resultMap>
+
+	<select id="querybyId" parameterType="int" resultType="user" useCache="true">  <!-- 关闭改statement的二级缓存，useCache默认为true -->
+		select
+		id,username,sex,birthday,address from user where id = #{aaa};
+	</select>
+
+	<select id="queryByName" parameterType="java.lang.String"
+		resultType="com.asiainfo.entity.User">
+		select * from user where username like '%${value}%'
+	</select>
+
+	<insert id="insertUser" parameterType="com.asiainfo.entity.User">
+		<selectKey keyProperty="id" resultType="int">
+			select
+			last_insert_id();
+		</selectKey>
+		insert into user (username,sex,address,birthday) values
+		(#{userName},#{sex},#{address},#{birthday});
+	</insert>
+
+	<delete id="deleteById" parameterType="int">
+		delete from user where id
+		= #{bbb};
+	</delete>
+
+	<update id="updateById" parameterType="com.asiainfo.entity.User" flushCache="true">  <!-- flushCache为刷新（清空）缓存，默认为true，一般使用默认值以避免脏读 -->
+		update user set
+		username=#{userName},sex=#{sex},address=#{birthday},birthday=#{birthday}
+		where id = #{id}
+	</update>
+
+	<select id="queryUserOrder" parameterType="com.asiainfo.vo.UserOrderVo"
+		resultType="com.asiainfo.vo.UserOrderVo">
+		select u.username,o.number from user u left join orders o
+		on u.id=o.user_id where u.username like '%${userExt.userName}%' and
+		o.number=#{order.number}
+	</select>
+
+	<select id="selectTotleCount" resultType="int">
+		select count(*) from
+		user;
+	</select>
+
+	<resultMap id="queryResultMapResultMap" type="user">
+		<!-- 映射唯一索引，如果是联合主键就要配置多个<id>标签 -->
+		<id column="id_zzw" property="id"></id>
+		<!-- 映射普通字段 -->
+		<result column="username_zzw" property="userName"></result>
+		<result column="sex_zzw" property="sex"></result>
+	</resultMap>
+
+	<select id="queryResultMap" resultMap="queryResultMapResultMap">  <!-- 引用的resultMap在其他的mapper.xml文件里，需要在resultMap的id加上namespace -->
+		select id id_zzw,username username_zzw,sex sex_zzw from user where
+		id=1;
+	</select>
+
+	<select id="queryDynamicSql" parameterType="user" resultType="user">
+		select * from user
+		<where> <!-- <where>标签可以智能地去掉第一个条件前面的and／or -->
+			<if test="userName!=null and userName != ''">
+				or username like '%${userName}%'
+			</if>
+			<if test="sex != null">
+				or sex = #{sex}
+			</if>
+		</where>
+	</select>
+
+	<sql id="userSqlSegment">  <!-- sql片段中尽量不要包含where -->
+		<if test="userName != null and userName != ''">
+			and userName like '%${userName}%'
+		</if>
+		<if test="sex != null">
+			and sex = #{sex}
+		</if>
+	</sql>
+
+	<select id="sqlSegment" parameterType="user" resultType="user">
+		select * from user
+		<where>
+			<include refid="userSqlSegment"></include>  <!-- 如果需要引用的sql片段在其他的mapper.xml里，引用时需要在sql片段的id前加上namespace -->
+		</where>
+	</select>
+
+	<select id="queryForeach" parameterType="userOrderVo" resultType="user">
+		select * from user where 1=1
+		<if test="idList !=null">
+		and
+			<foreach collection="idList" item="perId" open="(" close=")" separator="or">
+				id=#{perId}
+			</foreach>
+		</if>
+	</select>
+	
+	<select id="queryIdForeach" parameterType="userOrderVo" resultType="user">
+		select * from user 
+		<where>
+			1=1
+			<if test="idList != null">
+				and
+				<foreach collection="idList" item="perId" open="id in (" close=")" separator=",">
+					#{perId}
+				</foreach>
+			</if>
+		</where>
+	</select>
+	
+	<resultMap id="queryOneToMultyResultMap" type="UserExt" extends="baseResultMap">
+		<collection property="orderList" ofType="Order">
+			<id column="o_id" property="id"></id>
+			<result column="number" property="number"></result>
+		</collection>
+	</resultMap>
+	
+	<select id="queryOneToMulty" parameterType="string" resultMap="queryOneToMultyResultMap">
+		select u.*, o.id o_id, o.number from user u left join orders o on u.id = o.user_id where u.username = #{abc};
+	</select>
+	
+	<resultMap id="queryMultiToMultiResultMap" type="UserExt">
+		<id column="u_id" property="id"></id>
+		<result column="username" property="userName"></result>
+		<collection property="orderExts" ofType="OrderExt">
+			<id column="o_id" property="id"></id>
+			<result column="number" property="number"></result>
+			<collection property="orderDetails" ofType="OrderDetailExt">
+				<id column="od_id" property="id"></id>
+				<result column="items_num" property="itemsNum"></result>
+				<association property="itemsExt" javaType="ItemsExt">
+					<id column="i_id" property="id"></id>
+					<result column="i_name" property="name"></result>
+					<result column="price" property="price"></result>
+				</association>
+			</collection>
+		</collection>
+	</resultMap>
+	
+	<select id="queryMultiToMulti" parameterType="string" resultMap="queryMultiToMultiResultMap">
+		SELECT
+	u.id u_id,
+	u.username,
+	o.id o_id,
+	o.number,
+	od.id od_id,
+	od.items_num,
+	i.id i_id,
+	i.name i_name,
+	i.price
+FROM
+	USER u
+LEFT JOIN orders o ON u.id = o.user_id
+LEFT JOIN orderdetail od ON o.id = od.orders_id
+LEFT JOIN items i ON od.items_id = i.id
+WHERE
+	u.username = #{aaa};
+	</select>
+	
+	<resultMap id="queryMultiToMultiLazyLoadResultMap" type="userExt">
+		<id column="id" property="id"></id>
+		<result column="username" property="userName"></result>
+		<result column="birthday" property="birthday"></result>
+		<result column="sex" property="sex"></result>
+		<result column="address" property="address"></result>
+		<collection property="orderExts" ofType="OrderExt" select="com.asiainfo.mapper.OrderMapper.querybyUserId" column="id">
+		</collection>
+	</resultMap>
+	
+	<select id="queryOneToMultiLazyLoad" parameterType="int" resultMap="queryMultiToMultiLazyLoadResultMap">
+		select * from user where id=#{ccc}
+	</select>
+	
+</mapper>

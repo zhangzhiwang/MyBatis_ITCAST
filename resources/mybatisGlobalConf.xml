@@ -1,1 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!-- mybatis全局配置文件的名称可以自定义 -->
+<configuration>
+	<properties resource="db.properties">  <!-- mybatis会首先读取properties里面的属性，然后会读取resource或url里面的属性，如果resource和url里面的属性和property
+	的属性同名，那么会覆盖property的改同名属性，最佳实践是不要在properties里面配置任何属性，直接引入外面的文件 -->
+<!-- 		<property name="jdbc.driver.zzw" value="com.mysql.jdbc.Driver"></property> -->
+<!-- 		<property name="jdbc.url.zzw" value="jdbc:mysql://localhost:3306/mybatis?characterEncoding=utf-8"></property> -->
+<!-- 		<property name="jdbc.username.zzw" value="root"></property> -->
+<!-- 		<property name="jdbc.password.zzw" value=""></property> -->
+	</properties>
+	
+	<settings>
+		<!-- 开启延迟加载 -->
+		<setting name="lazyLoadingEnabled" value="true"></setting>
+		<!-- 将积极加载关闭 -->
+		<setting name="aggressiveLazyLoading" value="false"></setting>
+		<!-- 开启二级缓存（默认为开启，这里可以不配置） -->
+		<setting name="cacheEnabled" value="true"></setting>
+	</settings>
+
+	<typeAliases>
+		<!-- 单个别名定义 -->
+<!-- 		<typeAlias type="com.asiainfo.entity.User" alias="userZzw"></typeAlias> -->
+		<!-- 批量别名定义，别名为类名（首字母大小写都可） -->
+		<package name="com.asiainfo.entity"></package>
+		<package name="com.asiainfo.vo"></package>
+		<package name="cn1.po"></package>
+	</typeAliases>
+	
+<!-- 	<typeHandlers></typeHandlers> -->
+
+	<environments default="development">
+		<environment id="development">
+			<transactionManager type="JDBC"></transactionManager>
+			<dataSource type="POOLED">
+<!-- 				<property name="driver" value="com.mysql.jdbc.Driver"></property> -->
+<!-- 				<property name="url" value="jdbc:mysql://localhost:3306/mybatis?characterEncoding=utf-8"></property> -->
+<!-- 				<property name="username" value="root"></property> -->
+<!-- 				<property name="password" value=""></property> -->
+
+<!-- 					<property name="driver" value="${driverP}"></property> -->
+<!-- 					<property name="url" value="${urlP}"></property> -->
+<!-- 					<property name="username" value="${usernameP}"></property> -->
+<!-- 					<property name="password" value="${passwordP}"></property> -->
+
+						<property name="driver" value="${jdbc.driver.zzw}"></property>
+						<property name="url" value="${jdbc.url.zzw}"></property>
+						<property name="username" value="${jdbc.username.zzw}"></property>
+						<property name="password" value="${jdbc.password.zzw}"></property>
+			</dataSource>
+		</environment>
+	</environments>
+	
+	<mappers>
+		<!-- 单个mapper的配置——通过resource或url进行加载 -->
+<!-- 		<mapper resource="sqlMap/userZzw.xml"></mapper> -->
+<!-- 		<mapper resource="sqlMap/test.xml"></mapper> -->
+<!-- 		<mapper resource="mapper/userMapperZzw.xml"></mapper> -->
+<!-- 		<mapper url="file:///Applications/Eclipse.app/Contents/Eclipse/workspace/MyBatis_ITCAST/resources/mapper/userMapperZzw.xml"></mapper> -->
+		
+		<!-- 单个mapper的配置——通过class进行加载 -->
+		<!-- 此种方式需要符合以下约定：1、mapper.java和mapper.xml的文件名要相同 2、mapper.java和mapper.xml要在同一目录下 -->
+<!-- 		<mapper class="com.asiainfo.mapper.UserMapper"></mapper> -->
+
+		<!-- 批量mapper的配置 -->
+		<!-- 此种方式会扫描包下的所有mapper，须符合的约定同class加载的方式 -->
+		<package name="com.asiainfo.mapper"></package>
+		<package name="cn1.mapper"></package>
+	</mappers>
+</configuration>
